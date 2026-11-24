@@ -423,7 +423,7 @@ const SCREENS = {
       </section>
       <section class="card"><h3>Default help in games</h3>${assistControls()}</section>
       <section class="card danger"><h3>Reset</h3><p class="muted">Delete all progress, XP and achievements on this phone.</p><button class="btn ghost" id="reset">Reset progress</button></section>
-      <p class="muted center small">Opening Quest · Stockfish 17.1 (GPLv3) · chessground (GPLv3) · chess.js (BSD)<br>Chess.com import uses their public API. Not affiliated with Chess.com.</p>`;
+      <p class="muted center small">Opening Quest is free software (GPL-3.0) · <a href="https://github.com/deon20p-sudo/opening-quest" target="_blank" rel="noopener">Source code</a> · <a href="https://deon20p-sudo.github.io/opening-quest/privacy-policy.html" target="_blank" rel="noopener">Privacy</a><br>Stockfish 17.1 (GPLv3) · chessground (GPLv3) · chess.js (BSD) · piece sets from Lichess · sounds from Kenney (CC0)<br>Chess.com import uses their public API. Not affiliated with Chess.com.</p>`;
     main.querySelector('#name').onchange = (e) => { P.name = e.target.value.trim() || 'Player'; save(); };
     main.querySelector('#themeSlot').appendChild(themePicker());
     const mp = main.querySelectorAll('#appPick button');

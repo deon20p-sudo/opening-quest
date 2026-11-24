@@ -60,7 +60,7 @@ Export compliance: already answered in `Info.plist` (`ITSAppUsesNonExemptEncrypt
 | Category | Primary **Games → Board**; secondary **Education** |
 | Content rights | "Does your app contain, show, or access third-party content?" → **Yes** (it loads public games from Chess.com when the user asks). "Do you have all necessary rights?" → **Yes** (Chess.com's public API is offered for this) |
 | Age rating | Answer **None/No** to every item (violence, horror, mature themes, gambling, contests, profanity, medical, alcohol/drugs, sexual content, unrestricted web access, user-generated content/messaging). Result: **4+** |
-| Privacy Policy URL | `[PRIVACY POLICY URL]` |
+| Privacy Policy URL | `https://deon20p-sudo.github.io/opening-quest/privacy-policy.html` |
 | Support URL | your GitHub page or website |
 
 ## Step 5 – App Privacy ("nutrition label")

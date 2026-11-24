@@ -1,7 +1,7 @@
 # Opening Quest on Google Play: steps and ready answers
 
 Everything Play Console asks you, in the order it asks, with the answer to paste or tick.
-Replace the few `[BRACKETED]` bits with your own details.
+Your links are filled in: privacy policy https://deon20p-sudo.github.io/opening-quest/privacy-policy.html · source code https://github.com/deon20p-sudo/opening-quest · contact pdflifeguide@gmail.com.
 
 ## What's already made (in this folder)
 
@@ -27,19 +27,27 @@ To make a new version later: raise `versionCode` and `versionName` in `android/A
 
 > **Important for new personal accounts:** before you can publish to everyone, Google requires a **closed test with at least 12 testers who stay opted in for 14 days in a row** (step 7). Organization accounts skip this.
 
-## Step 2 – Put the privacy policy online
+## Step 2 – Put the privacy policy online ✅ done
+
+It's live at https://deon20p-sudo.github.io/opening-quest/privacy-policy.html (from the `docs/` folder of the GitHub repo). To change it, edit `docs/privacy-policy.html` and push.
+
+<details><summary>How it was done</summary>
+
 
 You need a public web address for it. Easiest free options:
 - **GitHub Pages**: create a public repo, upload `privacy-policy.html` as `index.html`, Settings → Pages → enable. URL looks like `https://<you>.github.io/<repo>/`.
 - **Google Sites**: create a site, paste the policy text, publish.
 
-First fill in `[YOUR NAME OR STUDIO NAME]` and `[YOUR CONTACT EMAIL]` in the file.
+</details>
 
-## Step 3 – Publish the source code (required by the licences)
+## Step 3 – Publish the source code (required by the licences) ✅ done
+
+Public at https://github.com/deon20p-sudo/opening-quest (signing keys, builds and logs are excluded by `.gitignore`).
+
 
 The app includes **Stockfish** and **chessground**, which are GPL-3.0. That means anyone who gets the app must be able to get its source code.
 - Put the whole `opening-quest` folder in a **public GitHub repository**, but **without** `android/upload-keystore.jks`, `android/upload-keystore-password.txt` and `android/debug.keystore`. The `.gitignore` already excludes them.
-- Add the repo link to the store description (a line is already in the text below) as `[SOURCE CODE URL]`.
+- Add the repo link to the store description (a line is already in the text below) as `https://github.com/deon20p-sudo/opening-quest`.
 
 ## Step 4 – Create the app
 
@@ -58,7 +66,7 @@ Play Console → **Create app**:
 ## Step 5 – "Set up your app" (Dashboard → App content)
 
 ### Privacy policy
-`[PRIVACY POLICY URL]` (from step 2)
+`https://deon20p-sudo.github.io/opening-quest/privacy-policy.html` (from step 2)
 
 ### App access
 **All functionality in my app is available without any access restrictions.**
@@ -67,7 +75,7 @@ Play Console → **Create app**:
 **No, my app does not contain ads.**
 
 ### Content rating (IARC questionnaire)
-- Email: `[YOUR CONTACT EMAIL]`
+- Email: `pdflifeguide@gmail.com`
 - Category: **Game** (it may also offer "All other app types": choose Game)
 
 | Question | Answer |
@@ -175,7 +183,7 @@ PLAY YOUR WAY
 • 9 boards, 7 piece sets, dark and light mode
 • Works offline. No ads, no account, no tracking.
 
-Opening Quest is free and open source (GPL-3.0). Source code: [SOURCE CODE URL]
+Opening Quest is free and open source (GPL-3.0). Source code: https://github.com/deon20p-sudo/opening-quest
 Uses Stockfish 17.1 (GPL-3.0). Not affiliated with Chess.com.
 ```
 
@@ -191,7 +199,7 @@ Uses Stockfish 17.1 (GPL-3.0). Not affiliated with Chess.com.
 - Tags (choose up to 5 from Google's list): **Chess**, **Board**, **Strategy**, **Educational**, **Single player**
 
 **Contact details**
-- Email: `[YOUR CONTACT EMAIL]` (shown publicly)
+- Email: `pdflifeguide@gmail.com` (shown publicly)
 - Website: optional (your GitHub page works)
 - Phone: optional
 
@@ -235,9 +243,9 @@ Production → **Create new release** → upload the same (or a newer) `.aab` �
 ## Checklist before you press "rollout"
 
 - [ ] Upload key backed up in 2 places
-- [ ] Privacy policy online and URL pasted
-- [ ] Source code on GitHub (without the keystores) and URL in description
-- [ ] `[YOUR NAME]`, `[YOUR CONTACT EMAIL]`, `[SOURCE CODE URL]` replaced everywhere
+- [x] Privacy policy online
+- [x] Source code on GitHub (without the keystores), link in the description
+- [x] Name, email and links filled in
 - [ ] App tested on your own phone from the closed-testing track
 
 ## Things to know
