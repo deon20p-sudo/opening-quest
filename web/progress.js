@@ -21,14 +21,15 @@ export const RANKS = [
 
 function fresh() {
   return {
-    name: 'Player', avatar: '', xp: 0, rating: 800,
+    name: 'Player', avatar: '', xp: 0, rating: 800, settingsVersion: 2,
+    savedGame: null,         // unfinished bot game: { botId, elo, userColor, assists, moves, savedAt }
     openings: {},            // id -> { lesson: bool, perfectLesson: bool, levels: { [n]: { stars, wins } }, best: n }
     bots: {},                // id -> { wins, losses, draws }
     games: [],               // recent games played in the app (pgn-ish) for review
     achievements: {},        // id -> timestamp
     stats: { lessons: 0, levelWins: 0, botWins: 0, games: 0, analyzed: 0, imported: 0, noHelpWins: 0, quickWins: 0, comebacks: 0 },
     streak: { days: 0, last: null },
-    settings: { sound: true, vibrate: true, board: 'green', assistArrows: true, assistEval: true, assistCoach: true, liveAnalysis: true, hints: true, confirmMove: false, premove: false, animation: 'normal', appearance: 'dark', arrowHold: 'medium' },
+    settings: { sound: true, vibrate: true, board: 'green', assistArrows: true, assistEval: true, assistCoach: true, liveAnalysis: true, hints: true, confirmMove: false, premove: false, animation: 'normal', appearance: 'dark', arrowHold: 'long' },
   };
 }
 
@@ -39,7 +40,10 @@ function load() {
     const s = JSON.parse(localStorage.getItem(KEY));
     if (s && typeof s === 'object') {
       const base = fresh();
-      return { ...base, ...s, stats: { ...base.stats, ...s.stats }, settings: { ...base.settings, ...s.settings }, streak: { ...base.streak, ...s.streak } };
+      const merged = { ...base, ...s, stats: { ...base.stats, ...s.stats }, settings: { ...base.settings, ...s.settings }, streak: { ...base.streak, ...s.streak } };
+      // 1.6: arrows now need a 2-second hold by default (shorter holds caught normal moves)
+      if ((merged.settingsVersion || 0) < 2) { merged.settings.arrowHold = 'long'; merged.settingsVersion = 2; }
+      return merged;
     }
   } catch { /* fall through */ }
   return fresh();

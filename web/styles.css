@@ -520,3 +520,19 @@ cg-board square.check { background: radial-gradient(ellipse at center, rgba(235,
 #app { padding-top: var(--safe-t); }
 .game { height: calc(100dvh - var(--safe-t)); }
 #toasts { top: calc(12px + var(--safe-t)); }
+
+/* hold-to-draw-arrow progress ring (appears after a short delay, fills during the hold) */
+.hold-ring { position: absolute; width: 12.5%; height: 12.5%; pointer-events: none; z-index: 4; }
+.hold-ring::before { content: ''; position: absolute; inset: 8%; border-radius: 50%; opacity: 0;
+  background: conic-gradient(rgba(240, 160, 32, 0.9) calc(var(--p, 0) * 1%), rgba(240, 160, 32, 0.18) 0);
+  -webkit-mask: radial-gradient(circle, transparent 56%, #000 58%); mask: radial-gradient(circle, transparent 56%, #000 58%);
+  animation: holdfill var(--hold, 1700ms) linear 300ms forwards; }
+@property --p { syntax: '<number>'; inherits: false; initial-value: 0; }
+@keyframes holdfill { 0% { opacity: 1; --p: 0; } 100% { opacity: 1; --p: 100; } }
+.card.resume { display: grid; grid-template-columns: auto 1fr; gap: 10px 12px; align-items: center; margin-bottom: 14px; border-left: 2px solid var(--accent); }
+.card.resume b { display: block; font: 600 15px/1.25 var(--serif); }
+.card.resume small { color: var(--ink-3); font-size: 12px; }
+.resume-btns { grid-column: 1 / -1; display: grid; grid-template-columns: 1.4fr 1fr; gap: 8px; }
+.resume-btns .btn { min-height: 44px; }
+.full-sf { width: 100%; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 6px; }
+.elo-scale { display: flex; justify-content: space-between; }

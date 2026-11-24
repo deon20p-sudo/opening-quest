@@ -3,7 +3,7 @@
 A mobile chess trainer: learn 46 openings, beat 10 levels of each, play characterful bots and get your Chess.com games analysed.
 
 ## Install (Android)
-Copy `dist/OpeningQuest-1.5.1.apk` to your phone (it installs over earlier versions and keeps your progress) and open it. Android will ask you to allow installing apps from that source (Files / Chrome) the first time.
+Copy `dist/OpeningQuest-1.6.0.apk` to your phone (it installs over earlier versions and keeps your progress) and open it. Android will ask you to allow installing apps from that source (Files / Chrome) the first time.
 
 ## What's inside
 - **46 openings** (22 as White, 24 as Black), each with a description, key ideas and the main line.
@@ -17,7 +17,7 @@ Copy `dist/OpeningQuest-1.5.1.apk` to your phone (it installs over earlier versi
 - **Game settings**: dark, light or phone-matched appearance, sound, analysis during the game (or only at the end), Hint button, confirm moves, premoves, piece animation speed (off/fast/normal/slow), 9 boards and 7 piece sets.
 - **Progress**: XP and ranks (Pawn → Grandmaster), 27 achievements, daily streak, rating, sounds and vibration.
 
-## Look (1.5.1)
+## Look (1.6.0)
 A warm dark design with dark-orange accents in the spirit of Lichess's minimal style: serif headings, thin line icons, no emoji. The bots' portraits, the walnut board, the home-screen scene and the app icon are rendered in Blender from procedurally modelled Staunton pieces (`tools/blender_assets.py`). A flat Slate board is available in Settings.
 
 ## Develop
@@ -25,7 +25,7 @@ A warm dark design with dark-orange accents in the spirit of Lichess's minimal s
 node tools/serve.mjs 5180          # then open http://localhost:5180/index.html
 node tools/test.mjs                # data, bots, analysis and engine tests
 DEPTH=15 node tools/generate.mjs   # regenerate web/data/openings.json from tools/catalog.mjs
-bash android/build.sh              # build + sign dist/OpeningQuest-1.5.1.apk (Android SDK + Android Studio JDK)
+bash android/build.sh              # build + sign dist/OpeningQuest-1.6.0.apk (Android SDK + Android Studio JDK)
 bash android/build-aab.sh           # signed app bundle for Google Play (dist/OpeningQuest-<version>.aab)
 node tools/store-screenshots.mjs    # store screenshots (needs tools/serve.mjs running)
 "C:/Program Files/Blender Foundation/Blender 5.2/blender.exe" -b -P tools/blender_assets.py -- build/assets   # re-render 3D art

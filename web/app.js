@@ -3,7 +3,7 @@ import { UciClient } from './uci.js';
 import { openGame } from './play.js';
 import { openReview } from './review.js';
 import { BOTS, LEVEL_BOTS, botById } from './bots.js';
-import { MIN_ELO, MAX_ELO } from './bot.js';
+import { MIN_ELO, MAX_ELO, FULL_STRENGTH } from './bot.js';
 import { fetchRecentGames, parsePgn } from './chesscom.js';
 import { P, save, resetAll, rankFor, openingProgress, mastery, isLevelUnlocked, MILESTONES, ACHIEVEMENTS, checkAchievements, touchStreak } from './progress.js';
 import { sfx } from './sfx.js';
@@ -277,11 +277,20 @@ const SCREENS = {
     let sel = BOTS.find((b) => b.id === (P.settings.lastBot || 'lila')) || BOTS[0];
     let elo = P.settings.lastElo || sel.elo;
     let color = P.settings.lastColor || 'w';
-    main.innerHTML = `<h1>Play a bot</h1><div class="bots"></div>
+    const sg = P.savedGame;
+    const sgBot = sg && BOTS.find((b) => b.id === sg.botId);
+    main.innerHTML = `<h1>Play a bot</h1>
+      ${sg && sgBot ? `<section class="card resume">
+        ${portrait(sgBot)}
+        <div><b>Unfinished game vs ${esc(sgBot.name)}</b><small>${eloLabel(sg.elo)} · you play ${sg.userColor === 'w' ? 'White' : 'Black'} · move ${Math.floor(sg.moves.length / 2) + 1}</small></div>
+        <div class="resume-btns"><button class="btn primary" id="resume">Continue</button><button class="btn ghost" id="discard">New game</button></div>
+      </section>` : ''}
+      <div class="bots"></div>
       <section class="card setup">
         <div class="sel-bot"></div>
         <label class="slider"><span>Difficulty <b id="eloVal"></b></span><input type="range" id="elo" min="${MIN_ELO}" max="${MAX_ELO}" step="25"></label>
-        <div class="elo-scale"><span>Beginner</span><span>Club</span><span>Expert</span><span>Master</span></div>
+        <div class="elo-scale"><span>Beginner</span><span>Club</span><span>Expert</span><span>Master</span><span>Stockfish</span></div>
+        <button class="btn ghost full-sf" id="fullsf">${icon('bolt')} Full-strength Stockfish</button>
         <div class="seg" id="color">${[['w', 'White'], ['r', 'Random'], ['b', 'Black']].map(([k, l]) => `<button data-c="${k}">${k === 'r' ? icon('dice') : `<span class="side ${k}"><i></i></span>`}${l}</button>`).join('')}</div>
         ${assistControls()}
         <button class="btn primary big" id="go">Play!</button>
@@ -299,11 +308,17 @@ const SCREENS = {
     for (const b of BOTS) {
       const btn = h('button', 'botchip', `${portrait(b)}<small>${esc(b.name.split(' ').slice(-1)[0] === 'Pawn' ? 'Pip' : b.name.split(' ')[0])}</small><i>${b.elo}</i>`);
       btn.dataset.id = b.id;
-      btn.onclick = () => { sfx.tap(); sel = b; elo = b.elo; eloIn.value = elo; eloVal.textContent = elo; drawSel(); };
+      btn.onclick = () => { sfx.tap(); sel = b; elo = b.elo; eloIn.value = elo; showElo(); drawSel(); };
       botsEl.appendChild(btn);
     }
-    eloIn.value = elo; eloVal.textContent = elo;
-    eloIn.oninput = () => { elo = +eloIn.value; eloVal.textContent = elo; };
+    const showElo = () => { eloVal.textContent = eloLabel(elo); };
+    eloIn.value = elo; showElo();
+    eloIn.oninput = () => { elo = +eloIn.value; showElo(); };
+    main.querySelector('#fullsf').onclick = () => { sfx.tap(); elo = FULL_STRENGTH; eloIn.value = elo; showElo(); };
+    if (sg && sgBot) {
+      main.querySelector('#resume').onclick = () => { sfx.tap(); show('game', { kind: 'free', botId: sg.botId, elo: sg.elo, userColor: sg.userColor, assists: sg.assists, resume: sg.moves }); };
+      main.querySelector('#discard').onclick = () => { sfx.tap(); P.savedGame = null; save(); show('play', {}, { push: false }); };
+    }
     const segs = main.querySelectorAll('#color button');
     const drawColor = () => segs.forEach((b) => b.classList.toggle('on', b.dataset.c === color));
     segs.forEach((b) => { b.onclick = () => { color = b.dataset.c; drawColor(); }; });
@@ -418,7 +433,7 @@ const SCREENS = {
         <label class="switch"><input type="checkbox" data-s="confirmMove" ${P.settings.confirmMove ? 'checked' : ''}><span>Confirm moves <small>Tap Play to send each move, or Cancel to take it back</small></span></label>
         <label class="switch"><input type="checkbox" data-s="premove" ${P.settings.premove ? 'checked' : ''}><span>Premoves <small>Queue your next move while the bot is thinking</small></span></label>
         <div class="set-row"><span>Piece animation<small>How pieces glide between squares</small></span><div class="seg" id="animPick">${['off', 'fast', 'normal', 'slow'].map((a) => `<button data-a="${a}">${a[0].toUpperCase() + a.slice(1)}</button>`).join('')}</div></div>
-        <div class="set-row"><span>Hold to draw arrows<small>Hold a square, then drag to draw an arrow (let go on the same square for a circle). Tap the board to clear.</small></span><div class="seg" id="holdPick">${[['short', '0.5 s'], ['medium', '1 s'], ['long', '2 s']].map(([v, l]) => `<button data-h="${v}">${l}</button>`).join('')}</div></div>
+        <div class="set-row"><span>Hold to draw arrows<small>Hold a square, then drag to draw an arrow (let go on the same square for a circle). Tap the board to clear.</small></span><div class="seg" id="holdPick">${[['short', '0.6 s'], ['medium', '1.2 s'], ['long', '2 s']].map(([v, l]) => `<button data-h="${v}">${l}</button>`).join('')}</div></div>
         <label class="switch"><input type="checkbox" id="vib" ${P.settings.vibrate ? 'checked' : ''}><span>Vibration</span></label>
       </section>
       <section class="card"><h3>Default help in games</h3>${assistControls()}</section>
@@ -438,11 +453,14 @@ const SCREENS = {
     ap.forEach((b) => { b.onclick = () => { P.settings.animation = b.dataset.a; save(); drawAnim(); sfx.tap(); }; });
     drawAnim();
     const hp = main.querySelectorAll('#holdPick button');
-    const drawHold = () => hp.forEach((b) => b.classList.toggle('on', b.dataset.h === (P.settings.arrowHold || 'medium')));
+    const drawHold = () => hp.forEach((b) => b.classList.toggle('on', b.dataset.h === (P.settings.arrowHold || 'long')));
     hp.forEach((b) => { b.onclick = () => { P.settings.arrowHold = b.dataset.h; save(); drawHold(); sfx.tap(); }; });
     drawHold();
     wireAssists(main);
-    main.querySelector('#reset').onclick = () => { if (confirm('Really delete all progress?')) { resetAll(); stack.length = 0; show('home'); } };
+    main.querySelector('#reset').onclick = () => modal({
+      icon: 'alert', tone: 'bad', title: 'Delete all progress?', body: '<p>XP, levels, stars, achievements and saved games on this phone will be deleted. This cannot be undone.</p>',
+      buttons: [{ label: 'Delete everything', primary: true, run: () => { resetAll(); stack.length = 0; show('home'); } }, { label: 'Cancel' }],
+    });
     app.append(top, main);
   },
 };
@@ -523,6 +541,9 @@ function levelSheet(o, L) {
   wireAssists(document.getElementById('modal'));
 }
 
+/** "1850" or "Stockfish · full strength" at the top of the slider. */
+function eloLabel(elo) { return elo >= FULL_STRENGTH ? 'Stockfish · full strength' : String(elo); }
+
 function startFree(bot, elo, userColor) {
   show('game', { kind: 'free', botId: bot.id, elo, userColor, assists: currentAssists() });
 }
@@ -549,7 +570,7 @@ SCREENS.game = (params) => {
     };
   } else {
     const bot = botById(params.botId);
-    cfg = { mode: 'free', line: [], userColor: params.userColor, bot, elo: params.elo, assists: params.assists, title: `vs ${bot.name}`, subtitle: `${params.elo} rating` };
+    cfg = { mode: 'free', line: [], userColor: params.userColor, bot, botId: params.botId, elo: params.elo, assists: params.assists, resume: params.resume, title: `vs ${bot.name}`, subtitle: params.elo >= FULL_STRENGTH ? 'Stockfish · full strength' : `${params.elo} rating` };
   }
   const env = gameEnv((next) => {
     if (next.mode === 'level') {

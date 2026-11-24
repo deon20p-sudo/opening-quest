@@ -103,8 +103,18 @@ export function openGame(root, cfg, env) {
     const m = S.game.history({ verbose: true }).at(-1);
     return m ? [m.from, m.to] : undefined;
   }
+  /** Free games against a bot are saved after every move, so you can leave and continue later. */
+  function persist() {
+    if (cfg.mode !== 'free') return;
+    if (S.over) { if (P.savedGame) { P.savedGame = null; save(); } return; }
+    const moves = S.game.history();
+    if (!moves.length) return;
+    P.savedGame = { botId: cfg.botId, elo: cfg.elo, userColor, assists, moves, savedAt: Date.now() };
+    save();
+  }
   function sync() {
     S.view = null;
+    persist();
     board.set(S.game, { lastMove: lastMove(), movable: !S.over && !S.busy && !S.confirming, userColor, premove: premoveOn && S.phase === 'play' && !S.over && !S.confirming });
     renderMoves();
     renderHearts();
@@ -495,13 +505,23 @@ export function openGame(root, cfg, env) {
     if (confirmBox('Resign this game?')) end({ result: 'loss', reason: 'Resigned' });
   };
 
-  backBtn.onclick = () => {
-    if (!S.over && S.game.history().length > 2 && cfg.mode !== 'lesson' && cfg.mode !== 'drill' && !confirmBox('Leave this game? It will count as unfinished.')) return;
+  // Leaving: bot games are saved (continue them from the Play tab); a level game asks first.
+  function leave() {
+    const saved = cfg.mode === 'free' && !S.over && S.game.history().length > 0;
     destroy();
     env.exit();
+    if (saved) env.toast({ icon: 'check', name: 'Game saved', desc: 'Continue it any time from the Play tab.' });
+  }
+  backBtn.onclick = () => {
+    if (cfg.mode === 'level' && !S.over && S.game.history().length > 2) {
+      env.modal({
+        icon: 'flag', title: 'Leave this level?', body: '<p>This game will count as unfinished.</p>',
+        buttons: [{ label: 'Leave', primary: true, run: leave }, { label: 'Keep playing' }],
+      });
+      return;
+    }
+    leave();
   };
-
-  function confirmBox(text) { return window.confirm(text); }
 
   // ---------- endings ----------
   function finishLesson() {
@@ -610,6 +630,10 @@ export function openGame(root, cfg, env) {
 
   // ---------- start ----------
   function start() {
+    if (cfg.resume && cfg.resume.length) {
+      for (const san of cfg.resume) { try { S.game.move(san); } catch { break; } }
+      S.phase = 'play';
+    }
     sync();
     if (cfg.mode === 'lesson') {
       speak(`Let's learn the ${cfg.opening.name}! Follow the green arrow.`);
@@ -624,7 +648,8 @@ export function openGame(root, cfg, env) {
       if (S.game.turn() === botColor) bookBotMove();
       else showBookArrow();
     } else {
-      setInfo(`<b>You play ${userColor === 'w' ? 'White' : 'Black'}</b><p>${!help || !live ? 'No analysis during this game. You can review it when it ends.' : hintsOn ? 'Hint suggests a move; Back takes your last move back.' : 'Back takes your last move back.'}</p>`);
+      if (cfg.resume && cfg.resume.length) setInfo(`<b>Game continued</b><p>Move ${Math.floor(S.game.history().length / 2) + 1} · you play ${userColor === 'w' ? 'White' : 'Black'}.</p>`);
+      else setInfo(`<b>You play ${userColor === 'w' ? 'White' : 'Black'}</b><p>${!help || !live ? 'No analysis during this game. You can review it when it ends.' : hintsOn ? 'Hint suggests a move; Back takes your last move back.' : 'Back takes your last move back.'}</p>`);
       if (S.game.turn() === botColor) botTurn();
     }
   }

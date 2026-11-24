@@ -5,18 +5,22 @@
 import { scoreOf } from './uci.js';
 
 export const MIN_ELO = 400;
-export const MAX_ELO = 2500;
+export const MAX_ELO = 3200;      // the top of the slider = Stockfish at full strength
+export const FULL_STRENGTH = 3200;
 
 // Stockfish's UCI_Elo is calibrated for long games; with the short thinking time a phone
-// gives it, it plays far below the number. So the engine is set ~400 points above the
-// rating shown, thinks longer, and the low bots blunder much less than before.
-export const ELO_BOOST = 400;
+// gives it, it plays far below the number. So the engine is set ~600 points above the
+// rating shown and thinks longer. At the top of the slider it plays at full strength.
+export const ELO_BOOST = 600;
 
 export function botSettings(elo) {
   elo = Math.max(MIN_ELO, Math.min(MAX_ELO, elo));
+  if (elo >= FULL_STRENGTH) {
+    return { mode: 'limit', options: { UCI_LimitStrength: 'false' }, movetime: 2500 };
+  }
   if (elo >= 1000) {
     const engineElo = Math.min(3190, Math.max(1320, Math.round(elo + ELO_BOOST)));
-    return { mode: 'limit', options: { UCI_LimitStrength: 'true', UCI_Elo: engineElo }, movetime: Math.round(450 + (elo - 1000) * 0.55) };
+    return { mode: 'limit', options: { UCI_LimitStrength: 'true', UCI_Elo: engineElo }, movetime: Math.round(600 + (elo - 1000) * 0.8) };
   }
   const depth = elo < 600 ? 3 : elo < 800 ? 5 : 7;
   const temperature = 12 + (1000 - elo) * 0.17;   // centipawns: 400 → ~114, 600 → ~80, 800 → ~46

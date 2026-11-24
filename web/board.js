@@ -75,8 +75,22 @@ export class Board {
    * A normal tap on the board clears your arrows, like on chess.com.
    */
   _bindHoldArrows() {
-    const HOLD = { short: 450, medium: 900, long: 1800 };
-    let timer = null, start = null, saved = [], active = null;
+    const HOLD = { short: 600, medium: 1200, long: 2000 };
+    let timer = null, start = null, saved = [], active = null, ring = null;
+    const holdMs = () => HOLD[P.settings.arrowHold] || HOLD.long;
+    // A ring fills up on the square while you hold, so an arrow never appears by surprise.
+    const showRing = (sq) => {
+      hideRing();
+      const { col, row } = this._pos(sq);
+      ring = document.createElement('div');
+      ring.className = 'hold-ring';
+      ring.style.left = `${col * 12.5}%`;
+      ring.style.top = `${row * 12.5}%`;
+      const ms = holdMs();
+      ring.style.setProperty('--hold', `${ms - 300}ms`);
+      this.layer.appendChild(ring);
+    };
+    const hideRing = () => { if (ring) { ring.remove(); ring = null; } };
     const sqAt = (x, y) => {
       const r = this.el.getBoundingClientRect();
       const f = Math.floor(((x - r.left) / r.width) * 8), rk = Math.floor(((y - r.top) / r.height) * 8);
@@ -89,22 +103,27 @@ export class Board {
       const cur = dest && dest !== active ? { orig: active, dest, brush: 'green' } : { orig: active, brush: 'green' };
       this.cg.setShapes(saved.concat([cur]));
     };
-    const reset = () => { clearTimeout(timer); timer = null; start = null; };
+    const reset = () => { clearTimeout(timer); timer = null; start = null; hideRing(); };
+    this._cancelHold = () => { if (!active) reset(); };
     const onStart = (e) => {
       if (e.touches && e.touches.length > 1) return reset();
       const p = pt(e);
       const sq = sqAt(p.clientX, p.clientY);
       if (!sq) return;
       saved = this.cg.state.drawable.shapes.slice(); // chessground erases these on tap
-      start = { x: p.clientX, y: p.clientY, sq };
+      start = { x: p.clientX, y: p.clientY, sq, fen: this.cg.getFen() };
       clearTimeout(timer);
+      showRing(sq);
       timer = setTimeout(() => {
         timer = null;
+        hideRing();
+        // the board changed while holding (a move was made): not an arrow
+        if (!start || this.cg.getFen() !== start.fen) { reset(); return; }
         active = start.sq;
         this.cg.cancelMove();
         if (navigator.vibrate && P.settings.vibrate) { try { navigator.vibrate(15); } catch { /* ignore */ } }
         preview(null);
-      }, HOLD[P.settings.arrowHold] || HOLD.medium);
+      }, holdMs());
     };
     const onMove = (e) => {
       if (active) {
@@ -115,7 +134,7 @@ export class Board {
       }
       if (timer && start) {
         const p = pt(e);
-        if (Math.hypot(p.clientX - start.x, p.clientY - start.y) > 10) reset(); // a normal drag
+        if (Math.hypot(p.clientX - start.x, p.clientY - start.y) > 8) reset(); // a normal drag
       }
     };
     const onEnd = (e) => {
@@ -143,6 +162,7 @@ export class Board {
   clearUserShapes() { this.cg.setShapes([]); }
 
   set(game, { lastMove, movable = false, userColor = 'w', premove = false } = {}) {
+    if (this._cancelHold && game.fen().split(' ')[0] !== this.cg.getFen()) this._cancelHold();
     const turn = game.turn() === 'w' ? 'white' : 'black';
     const canMove = movable && game.turn() === userColor && !game.isGameOver();
     // Premove: while the opponent is to move, your own pieces can be queued up for the next move.
