@@ -1,0 +1,6 @@
+Piece sets taken from the Lichess repository (github.com/lichess-org/lila/public/piece):
+- merida   : Armando Hernandez Marroquin - GPLv2+
+- chessnut : Alexis Luengas - Apache 2.0
+- mpchess  : Maxime Chupin - GPLv3+
+- fantasy, celtic, spatial : Maurizio Monge - MIT (github.com/maurimo/chess-art)
+Classic (cburnett, in ../pieces): Colin M.L. Burnett - GPLv2+

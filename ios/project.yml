@@ -1,0 +1,27 @@
+# XcodeGen project: on a Mac run `brew install xcodegen && cd ios && xcodegen` to create OpeningQuest.xcodeproj
+name: OpeningQuest
+options:
+  bundleIdPrefix: com.openingquest
+  deploymentTarget:
+    iOS: "15.0"
+targets:
+  OpeningQuest:
+    type: application
+    platform: iOS
+    sources:
+      - path: OpeningQuest
+      - path: ../web
+        type: folder
+        buildPhase: resources
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.openingquest.app
+        PRODUCT_NAME: Opening Quest
+        MARKETING_VERSION: "1.5.0"
+        CURRENT_PROJECT_VERSION: "9"
+        INFOPLIST_FILE: OpeningQuest/Info.plist
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        TARGETED_DEVICE_FAMILY: "1"
+        SWIFT_VERSION: "5.0"
+        CODE_SIGN_STYLE: Automatic
+        # DEVELOPMENT_TEAM: ABCDE12345   <- your Apple team ID (or pick it in Xcode > Signing)

@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#21201d">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; worker-src 'self' blob:; connect-src 'self' blob: https://api.chess.com; img-src 'self' data:; style-src 'self' 'unsafe-inline'">
+<title>Opening Quest</title>
+<link rel="icon" href="img/icon.png">
+<link rel="stylesheet" href="vendor/chessground.base.css">
+<link rel="stylesheet" href="vendor/chessground.cburnett.css">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div id="app"></div>
+<div id="toasts"></div>
+<div id="modal" class="modal" hidden></div>
+<canvas id="confetti"></canvas>
+<script type="module" src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+# signing keys: never publish these
+android/upload-keystore.jks
+android/upload-keystore-password.txt
+android/debug.keystore
+*.jks
+*.keystore
+# build output
+build/
+dist/
+tools/bin/
+*.idsig
+node_modules/
+.claude/
+*.log
