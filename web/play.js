@@ -528,9 +528,15 @@ export function openGame(root, cfg, env) {
     S.over = true;
     sync();
     const o = openingProgress(cfg.opening.id);
-    const first = !o.lesson;
+    const first = cfg.variation ? !((o.vars || {})[cfg.variation.id] || {}).lesson : !o.lesson;
     const perfect = S.mistakes === 0;
-    if (cfg.mode === 'lesson') {
+    const vr = cfg.variation;
+    if (vr) {
+      o.vars = o.vars || {};
+      const vp = o.vars[vr.id] = o.vars[vr.id] || {};
+      if (cfg.mode === 'lesson') { if (!vp.lesson) P.stats.lessons++; vp.lesson = true; if (perfect) o.perfectLesson = true; }
+      else if (perfect) vp.drill = true;
+    } else if (cfg.mode === 'lesson') {
       o.lesson = true;
       if (perfect) o.perfectLesson = true;
       if (first) P.stats.lessons++;
@@ -545,7 +551,7 @@ export function openGame(root, cfg, env) {
     env.modal({
       icon: perfect ? 'trophy' : 'book',
       title: cfg.mode === 'drill' ? (perfect ? 'Perfect recall!' : 'Drill complete') : 'Lesson complete!',
-      body: `${perfect ? 'No mistakes — flawless!' : `${S.mistakes} wrong ${S.mistakes === 1 ? 'move' : 'moves'}. Practice makes perfect.`}<div class="xp-gain">+${xp} XP</div>`,
+      body: `${cfg.variation ? `<p><b>${esc(cfg.variation.name)}</b> · ${esc(cfg.variation.idea)}</p>` : ''}${perfect ? 'No mistakes — flawless!' : `${S.mistakes} wrong ${S.mistakes === 1 ? 'move' : 'moves'}. Practice makes perfect.`}<div class="xp-gain">+${xp} XP</div>`,
       achievements: ach,
       buttons: [
         { label: 'Play Level 1', primary: true, run: () => env.next({ mode: 'level', level: Math.max(1, (o.best || 0) + 1) }) },
@@ -636,7 +642,7 @@ export function openGame(root, cfg, env) {
     }
     sync();
     if (cfg.mode === 'lesson') {
-      speak(`Let's learn the ${cfg.opening.name}! Follow the green arrow.`);
+      speak(cfg.variation ? `Let's learn the ${cfg.variation.name}. ${cfg.variation.idea}` : `Let's learn the ${cfg.opening.name}! Follow the green arrow.`);
     } else if (cfg.mode === 'drill') {
       speak('No arrows this time. Play the moves from memory!');
     } else {

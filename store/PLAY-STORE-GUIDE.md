@@ -7,7 +7,7 @@ Your links are filled in: privacy policy https://deon20p-sudo.github.io/opening-
 
 | File | What it's for |
 |---|---|
-| `dist/OpeningQuest-1.6.0.aab` | The app bundle you upload (signed with your upload key, targets Android 16 / API 36) |
+| `dist/OpeningQuest-1.7.0.aab` | The app bundle you upload (signed with your upload key, targets Android 16 / API 36) |
 | `android/upload-keystore.jks` + `android/upload-keystore-password.txt` | Your **upload key**. Back both up (USB stick + cloud). If you lose them you must ask Google to reset the key. Never share them. |
 | `store/graphics/icon-512.png` | App icon (512 × 512) |
 | `store/graphics/feature-graphic-1024x500.png` | Feature graphic (1024 × 500) |
@@ -162,6 +162,7 @@ LEARN EVERY OPENING
 • Guided lessons: an arrow shows the next move and every move is explained in plain English
 • Wrong move? A ✕ appears beside the piece and the move is taken back so you can try again
 • Drills: play the line from memory, with no arrows
+• 178 named variations – Najdorf, Winawer, Marshall, Berlin and more – each with its own lesson and drill
 
 10 LEVELS PER OPENING
 • Each level's bot answers with a different variation and plays stronger (400 → 2200)
@@ -210,8 +211,8 @@ Uses Stockfish 17.1 (GPL-3.0). Not affiliated with Chess.com.
 ## Step 7 – Closed test (needed before production for new personal accounts)
 
 1. Testing → **Closed testing** → Create track (e.g. "Testers") → **Create new release**.
-2. Upload `dist/OpeningQuest-1.6.0.aab`.
-3. Release name: `1.6.0`. Release notes:
+2. Upload `dist/OpeningQuest-1.7.0.aab`.
+3. Release name: `1.7.0`. Release notes:
    ```
    <en-US>
    First release: 46 openings, 10 levels each, 9 bots, Chess.com game analysis, boards, piece sets, light mode.

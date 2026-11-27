@@ -245,11 +245,24 @@ const SCREENS = {
           <button class="btn ghost" id="drill">${icon('layers')}Drill</button>
         </div>
       </section>
+      ${o.variations && o.variations.length ? `<h3 class="path-title">Variations</h3>
+      <p class="muted path-sub">The main lines you'll meet in the ${esc(o.name)}. Learn each one, then drill it from memory.</p>
+      <div class="vars">${o.variations.map((v, i) => {
+        const vp = (p.vars || {})[v.id] || {};
+        return `<div class="var-card${vp.lesson ? ' learned' : ''}">
+          <div class="var-head"><b>${esc(v.name)}</b>${vp.drill ? `<span class="learned">${icon('check')}Mastered</span>` : vp.lesson ? `<span class="learned">${icon('check')}Learned</span>` : ''}</div>
+          <div class="core var-moves">${movesHtml(v.moves, o.side, o.coreLen)}</div>
+          <p class="var-idea">${esc(v.idea)}</p>
+          <div class="row2"><button class="btn primary sm" data-vl="${i}">${icon('book')}${vp.lesson ? 'Review' : 'Learn'}</button><button class="btn ghost sm" data-vd="${i}">${icon('layers')}Drill</button></div>
+        </div>`;
+      }).join('')}</div>` : ''}
       <h3 class="path-title">Level path</h3>
       <p class="muted path-sub">Each level's bot answers with a different variation and plays stronger. Play the ${esc(o.name)} and win!</p>
       <div class="path"></div>`;
     main.querySelector('#learn').onclick = () => startLesson(o, 'lesson');
     main.querySelector('#drill').onclick = () => startLesson(o, 'drill');
+    main.querySelectorAll('[data-vl]').forEach((b) => { b.onclick = () => startLesson(o, 'lesson', o.variations[+b.dataset.vl].id); });
+    main.querySelectorAll('[data-vd]').forEach((b) => { b.onclick = () => startLesson(o, 'drill', o.variations[+b.dataset.vd].id); });
     const path = main.querySelector('.path');
     for (let L = 1; L <= 10; L++) {
       const lv = o.levels[L - 1];
@@ -512,8 +525,13 @@ function gameEnv(cfgFactory) {
   };
 }
 
-function startLesson(o, mode) {
-  show('game', { kind: 'lesson', id: o.id, mode });
+function startLesson(o, mode, variation) {
+  show('game', { kind: 'lesson', id: o.id, mode, variation });
+}
+
+/** A move list with the learner's moves highlighted; the opening's own moves are dimmed. */
+function movesHtml(mv, side, skip = 0) {
+  return mv.map((m, i) => `${i % 2 === 0 ? `<i>${i / 2 + 1}.</i>` : ''}<span class="${(i % 2 === 0 ? 'w' : 'b') === side ? 'you' : ''}${i < skip ? ' pre' : ''}">${esc(m)}</span>`).join(' ');
 }
 
 function startLevel(o, level) {
@@ -553,12 +571,13 @@ SCREENS.game = (params) => {
   if (params.kind === 'lesson') {
     const o = OPENINGS.find((x) => x.id === params.id);
     // lessons teach the standard main line (curated where the engine's top line is a sideline)
-    const mainLine = o.main || o.levels[9].moves;
+    const variation = params.variation && (o.variations || []).find((v) => v.id === params.variation);
+    const mainLine = variation ? variation.moves : o.main || o.levels[9].moves;
     cfg = {
-      mode: params.mode, opening: o, line: mainLine, userColor: o.side,
+      mode: params.mode, opening: o, variation, line: mainLine, userColor: o.side,
       bot: { name: 'Coach Lila', img: botById('lila').img, color: '#5ad1a4', style: params.mode === 'drill' ? 'Drill' : 'Lesson', lines: botById('lila').lines },
       elo: 1200, assists: { arrows: params.mode === 'lesson', eval: true, coach: true },
-      title: o.name, subtitle: params.mode === 'drill' ? 'Drill · from memory' : 'Lesson · main line',
+      title: o.name, subtitle: `${params.mode === 'drill' ? 'Drill' : 'Lesson'} · ${variation ? variation.name : params.mode === 'drill' ? 'from memory' : 'main line'}`,
     };
   } else if (params.kind === 'level') {
     const o = OPENINGS.find((x) => x.id === params.id);
@@ -582,7 +601,7 @@ SCREENS.game = (params) => {
       show('game', { kind: 'level', id: o.id, level: L, assists: currentAssists() });
     } else if (next.mode === 'drill') {
       stack.pop();
-      show('game', { kind: 'lesson', id: cfg.opening.id, mode: 'drill' });
+      show('game', { kind: 'lesson', id: cfg.opening.id, mode: 'drill', variation: cfg.variation && cfg.variation.id });
     }
   });
   env.review = (game) => { stack.pop(); show('review', { game }); };
@@ -598,6 +617,10 @@ async function boot() {
     const data = await r.json();
     OPENINGS = data.openings;
     LEVEL_ELO = data.levelElo;
+    try {
+      const vars = await (await fetch('data/variations.json')).json();
+      for (const o of OPENINGS) o.variations = vars[o.id] || [];
+    } catch { for (const o of OPENINGS) o.variations = []; }
   } catch (e) {
     app.innerHTML = `<p class="error center">Could not load openings: ${esc(e.message)}</p>`;
     return;
