@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Builds dist/OpeningQuest-1.7.0.apk from web/ using only the Android SDK tools (no Gradle).
+# Builds dist/OpeningQuest-1.7.1.apk from web/ using only the Android SDK tools (no Gradle).
 set -euo pipefail
 cd "$(dirname "$0")"
 export MSYS_NO_PATHCONV=1
@@ -14,7 +14,7 @@ export JAVA_HOME="$(w "$JDK")"
 export PATH="$JDK/bin:$PATH"
 OUT="$ROOT/build/android"
 DIST="$ROOT/dist"
-APK="$DIST/OpeningQuest-1.7.0.apk"
+APK="$DIST/OpeningQuest-1.7.1.apk"
 rm -rf "$OUT" && mkdir -p "$OUT/res" "$OUT/gen" "$OUT/classes" "$OUT/assets/web" "$DIST"
 echo "build-tools: $BT"
 

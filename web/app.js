@@ -249,19 +249,20 @@ const SCREENS = {
       <p class="muted path-sub">The main lines you'll meet in the ${esc(o.name)}. Learn each one, then drill it from memory.</p>
       <div class="vars">${o.variations.map((v, i) => {
         const vp = (p.vars || {})[v.id] || {};
-        return `<div class="var-card${vp.lesson ? ' learned' : ''}">
+        return `<div class="var-card${vp.lesson ? ' done' : ''}">
           <div class="var-head"><b>${esc(v.name)}</b>${vp.drill ? `<span class="learned">${icon('check')}Mastered</span>` : vp.lesson ? `<span class="learned">${icon('check')}Learned</span>` : ''}</div>
           <div class="core var-moves">${movesHtml(v.moves, o.side, o.coreLen)}</div>
           <p class="var-idea">${esc(v.idea)}</p>
-          <div class="row2"><button class="btn primary sm" data-vl="${i}">${icon('book')}${vp.lesson ? 'Review' : 'Learn'}</button><button class="btn ghost sm" data-vd="${i}">${icon('layers')}Drill</button></div>
+          <div class="row2"><button class="btn primary sm" data-vl="${i}">${icon('book')}${vp.lesson ? 'Review' : 'Learn'}</button><button class="btn ghost sm" data-vd="${i}">${icon('layers')}Drill</button><button class="btn ghost sm" data-vp="${i}">${icon('sword')}Play</button></div>
         </div>`;
       }).join('')}</div>` : ''}
       <h3 class="path-title">Level path</h3>
-      <p class="muted path-sub">Each level's bot answers with a different variation and plays stronger. Play the ${esc(o.name)} and win!</p>
+      <p class="muted path-sub">Each level's bot plays stronger. Tap a level to choose which line it plays — its own, any variation above, or a random one.</p>
       <div class="path"></div>`;
     main.querySelector('#learn').onclick = () => startLesson(o, 'lesson');
     main.querySelector('#drill').onclick = () => startLesson(o, 'drill');
     main.querySelectorAll('[data-vl]').forEach((b) => { b.onclick = () => startLesson(o, 'lesson', o.variations[+b.dataset.vl].id); });
+    main.querySelectorAll('[data-vp]').forEach((b) => { b.onclick = () => { setLevelVar(o, o.variations[+b.dataset.vp].id); levelSheet(o, nextLevel(o)); }; });
     main.querySelectorAll('[data-vd]').forEach((b) => { b.onclick = () => startLesson(o, 'drill', o.variations[+b.dataset.vd].id); });
     const path = main.querySelector('.path');
     for (let L = 1; L <= 10; L++) {
@@ -535,8 +536,18 @@ function movesHtml(mv, side, skip = 0) {
 }
 
 function startLevel(o, level) {
-  show('game', { kind: 'level', id: o.id, level, assists: currentAssists() });
+  show('game', { kind: 'level', id: o.id, level, assists: currentAssists(), variation: levelVarChoice(o) });
 }
+
+/** Which line the level bots follow in this opening: 'level' (each level's own), 'random', or a variation id. */
+function levelVarChoice(o) {
+  const c = (P.settings.levelVar || {})[o.id] || 'level';
+  return c === 'level' || c === 'random' || (o.variations || []).some((v) => v.id === c) ? c : 'level';
+}
+function setLevelVar(o, c) { P.settings.levelVar = { ...(P.settings.levelVar || {}), [o.id]: c }; save(); }
+
+/** The highest level the player can start now. */
+function nextLevel(o) { let L = 1; while (L < 10 && isLevelUnlocked(o.id, L + 1)) L++; return L; }
 
 function levelSheet(o, L) {
   const lv = o.levels[L - 1];
@@ -550,13 +561,20 @@ function levelSheet(o, L) {
       <p class="muted">You have three lives for moves that leave the opening.</p>
       ${mile ? `<p class="mile-note">Win to earn the title <b>${mile.title}</b> in this opening.</p>` : ''}
       ${prog ? `<p>Best result: ${prog.stars} of 3 stars</p>` : ''}
+      ${(o.variations || []).length ? `<label class="sheet-var"><span>Opening line</span><select id="lvVar">
+        <option value="level">Level ${L}'s own line (${esc(lv.label)})</option>
+        ${o.variations.map((v) => `<option value="${v.id}">${esc(v.name)}</option>`).join('')}
+        <option value="random">Random variation</option>
+      </select></label>` : ''}
       <div class="sheet-assists">${assistControls()}</div>`,
     buttons: [
-      { label: 'Start level', primary: true, run: () => startLevel(o, L) },
+      { label: 'Start level', primary: true, run: () => { const sel = document.getElementById('lvVar'); if (sel) setLevelVar(o, sel.value); startLevel(o, L); } },
       { label: 'Cancel' },
     ],
   });
   wireAssists(document.getElementById('modal'));
+  const sel = document.getElementById('lvVar');
+  if (sel) sel.value = levelVarChoice(o);
 }
 
 /** "1850" or "Stockfish · full strength" at the top of the slider. */
@@ -582,10 +600,12 @@ SCREENS.game = (params) => {
   } else if (params.kind === 'level') {
     const o = OPENINGS.find((x) => x.id === params.id);
     const lv = o.levels[params.level - 1];
+    const vs = o.variations || [];
+    const variation = params.variation === 'random' && vs.length ? vs[Math.floor(Math.random() * vs.length)] : vs.find((v) => v.id === params.variation);
     cfg = {
-      mode: 'level', opening: o, level: params.level, line: lv.moves, userColor: o.side,
+      mode: 'level', opening: o, level: params.level, line: variation ? variation.moves : lv.moves, userColor: o.side, variation,
       bot: botById(LEVEL_BOTS[params.level - 1]), elo: lv.elo, assists: params.assists,
-      title: o.name, subtitle: `Level ${params.level} of 10`,
+      title: o.name, subtitle: `Level ${params.level} of 10${variation ? ` · ${variation.name}` : ''}`,
     };
   } else {
     const bot = botById(params.botId);
@@ -598,7 +618,7 @@ SCREENS.game = (params) => {
       if (!isLevelUnlocked(o.id, L)) return show('opening', { id: o.id });
       // replace the current game screen in history
       stack.pop();
-      show('game', { kind: 'level', id: o.id, level: L, assists: currentAssists() });
+      show('game', { kind: 'level', id: o.id, level: L, assists: currentAssists(), variation: levelVarChoice(o) });
     } else if (next.mode === 'drill') {
       stack.pop();
       show('game', { kind: 'lesson', id: cfg.opening.id, mode: 'drill', variation: cfg.variation && cfg.variation.id });

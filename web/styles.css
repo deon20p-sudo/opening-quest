@@ -538,12 +538,16 @@ cg-board square.check { background: radial-gradient(ellipse at center, rgba(235,
 .elo-scale { display: flex; justify-content: space-between; }
 
 /* variations on the opening page */
-.vars { display: grid; gap: 12px; margin-bottom: 8px; }
-.var-card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 14px; }
-.var-card.learned { border-color: color-mix(in srgb, var(--good) 45%, var(--line)); }
+.vars { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; margin-bottom: 8px; width: 100%; }
+.var-card { display: block; min-width: 0; max-width: 100%; box-sizing: border-box; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 14px; }
+.var-card.done { border-color: color-mix(in srgb, var(--good) 45%, var(--line)); }
 .var-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 15.5px; }
 .var-head .learned { font-size: 12px; }
-.var-moves { margin-top: 10px; font-size: 13px; line-height: 1.75; }
+.var-moves { white-space: normal; overflow-wrap: anywhere; margin-top: 10px; font-size: 13px; line-height: 1.75; }
 .var-moves .pre { opacity: .5; }
 .var-idea { color: var(--ink-2); font-size: 13.5px; margin: 10px 0 12px; }
 .btn.sm { padding: 9px 12px; font-size: 14px; min-height: 0; }
+.var-card .row2 { gap: 8px; }
+.var-card .row2 .btn { padding: 9px 6px; gap: 5px; }
+.m-body .sheet-var { display: flex; flex-direction: column; gap: 6px; text-align: left; margin-top: 12px; font-size: 13px; color: var(--ink-2); }
+.m-body .sheet-var select { width: 100%; padding: 11px 12px; border-radius: 12px; background: var(--bg); color: var(--ink); border: 1px solid var(--line-2); font: 500 15px var(--sans); }
